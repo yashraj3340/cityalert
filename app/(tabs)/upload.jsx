@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-
+import { Picker } from "@react-native-picker/picker";
 import { icons } from "../../constants";
 import { createVideoPost } from "../../lib/appwrite";
 import { CustomButton, FormField } from "../../components";
@@ -35,34 +35,27 @@ const Upload = () => {
           : ["video/mp4", "video/gif"],
     });
 
-    if (!result.canceled) {
-      if (selectType === "image") {
-        setForm({
-          ...form,
-          thumbnail: result.assets[0],
-        });
-      }
+    if (result.type === "success" && result.uri) {
+      const asset = { uri: result.uri }; // Normalize the asset object
 
-      if (selectType === "video") {
-        setForm({
-          ...form,
-          video: result.assets[0],
-        });
+      if (selectType === "image") {
+        setForm((prevForm) => ({
+          ...prevForm,
+          thumbnail: asset,
+        }));
+      } else if (selectType === "video") {
+        setForm((prevForm) => ({
+          ...prevForm,
+          video: asset,
+        }));
       }
     } else {
-      setTimeout(() => {
-        Alert.alert("Document picked", JSON.stringify(result, null, 2));
-      }, 100);
+      Alert.alert("Document picker was canceled");
     }
   };
 
   const submit = async () => {
-    if (
-      (form.description === "") |
-      (form.title === "") |
-      !form.thumbnail |
-      !form.video
-    ) {
+    if (!form.description || !form.title || !form.thumbnail || !form.video) {
       return Alert.alert("Please provide all fields");
     }
 
